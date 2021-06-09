@@ -4,3 +4,7 @@
 
 # Holmes
 Holmes is a utility bot with commands for AFK, OCR, trivia, weather, etc., primarily great for private servers with friends.
+## Features
+Coming soon
+## Invite
+Invite me to your server using this [link](https://discord.com/api/oauth2/authorize?client_id=851538022356615208&permissions=134605888&scope=bot)
