@@ -1,0 +1,4 @@
+cogs/points.json
+prefixes.json
+__pycache__/
+*.py[cod]
