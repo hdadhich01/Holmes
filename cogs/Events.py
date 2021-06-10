@@ -76,7 +76,8 @@ class Events(commands.Cog):
     if message.guild:
       if message.guild.me.guild_permissions.manage_nicknames:
         # afk user returns
-        if not message.content.lower().startswith("!afk"):
+        ctx = await self.bot.get_context(message)
+        if not str(ctx.command) == "afk":
           if str(message.author.id) in db:
             del db[str(message.author.id)]
             if not message.author.guild_permissions.administrator:

@@ -19,20 +19,19 @@ class DatabaseCommands(commands.Cog):
     self.bot = bot
   
   @commands.command(help = "Sets your AFK status", aliases = ["busy", "bye", "gn"])
-  # @commands.bot_has_permissions(manage_nicknames = True)
   async def afk(self, ctx, *, message = None):
     if not ctx.guild:
       await ctx.send(f"{self.bot.errorEmoji} This command only works in a server")
       return
     if not ctx.me.guild_permissions.manage_nicknames:
-      raise commands.BotMissingPermissions
-    if ctx.author.display_name.startswith("|AFK| "):
+      raise commands.BotMissingPermissions(["manage_nicknames"])
+    if ctx.author.display_name.startswith("[AFK] "):
       return
     if ctx.me.top_role > ctx.author.top_role and not ctx.author.guild_permissions.administrator:
       if len(ctx.author.display_name) <= 26:
-        await ctx.author.edit(nick = f"|AFK| {ctx.author.display_name}")
+        await ctx.author.edit(nick = f"[AFK] {ctx.author.display_name}")
       else:
-        await ctx.author.edit(nick = f"|AFK| {ctx.author.display_name[:-6]}")
+        await ctx.author.edit(nick = f"[AFK] {ctx.author.display_name[:-6]}")
     db[str(ctx.author.id)] = [str(ctx.message.created_at), message]
     text = f"{self.bot.checkmarkEmoji} Set your AFK"
     if message:

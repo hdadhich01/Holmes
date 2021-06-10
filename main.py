@@ -37,7 +37,7 @@ async def on_ready():
     if filename.endswith(".py"):
       bot.load_extension(f"cogs.{filename[:-3]}")
       print(f"- {filename}")
-  
+
   # afk reapplication
   for server in bot.guilds:
     for member in server.members:
@@ -45,7 +45,7 @@ async def on_ready():
         if not member.display_name.startswith("[AFK] "):
           del db[str(member.id)]
       else:
-        if member.display_name.startswith("|AFK| "):
+        if member.display_name.startswith("[AFK] "):
           db[str(member.id)] = [str(datetime.now()), None]
   
   tprint(bot.user.name)
