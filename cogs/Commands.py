@@ -34,7 +34,7 @@ class Commands(commands.Cog):
   async def icon(self, ctx):
     embed = discord.Embed(title = ":frame_photo: Server Icon", color = 0x9c7a61, timestamp = datetime.utcnow())
     embed.set_footer(text = f"Requested by {ctx.author}", icon_url = ctx.author.avatar_url)
-    embed.set_image(url = self.bot.server.icon_url)
+    embed.set_image(url = ctx.guild.icon_url)
     await ctx.send(embed = embed)
   
   @commands.command(help = "Displays my invite link", aliases = ["inv"])
