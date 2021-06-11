@@ -20,6 +20,7 @@ bot = commands.Bot(command_prefix = get_prefix, intents = discord.Intents.all(),
 
 bot.help_command = HelpCommand(command_attrs = {
    "name": "help",
+   "help": "Displays this message",
    "aliases": ["info"],
    "cooldown": commands.Cooldown(1, 5, commands.BucketType.user)
 })
@@ -32,6 +33,7 @@ async def on_ready():
   bot.errorEmoji = "<:error:759595263341494292>"
   bot.checkmarkEmoji = "<:checkmark:759595263076728842>"
   bot.loadingEmoji = "<a:loading:851608303942631474>"
+  print(f"Discord.py {discord.__version__}")
   print(f"Loading Cogs:")
   for filename in os.listdir("./cogs"):
     if filename.endswith(".py"):

@@ -10,7 +10,7 @@ class Commands(commands.Cog):
   def __init__(self, bot):
     self.bot = bot
   
-  @commands.command(help = "Displays a specified hex code", aliases = ["colour"])
+  @commands.command(help = "Displays a hex code", aliases = ["colour"])
   @commands.cooldown(1, 5, BucketType.user) 
   async def color(self, ctx, hexCode: discord.Color):
     embed = discord.Embed(title = ":trackball: Color", description = str(hexCode).lower(), color = hexCode, timestamp = datetime.utcnow())
@@ -34,14 +34,13 @@ class Commands(commands.Cog):
   async def icon(self, ctx):
     embed = discord.Embed(title = ":frame_photo: Server Icon", color = 0x9c7a61, timestamp = datetime.utcnow())
     embed.set_footer(text = f"Requested by {ctx.author}", icon_url = ctx.author.avatar_url)
-    embed.set_image(url = self.bot.server.icon_url)
+    embed.set_image(url = ctx.guild.icon_url)
     await ctx.send(embed = embed)
   
   @commands.command(help = "Displays my invite link", aliases = ["inv"])
-  @commands.guild_only()
   @commands.cooldown(1, 5, BucketType.user) 
   async def invite(self, ctx):
-    embed = discord.Embed(title = ":inbox_tray: Invite Link", description = "You can invite the bot using this [link](https://discord.com/api/oauth2/authorize?client_id=851538022356615208&permissions=134605888&scope=bot)", color = 0x9c7a61, timestamp = datetime.utcnow())
+    embed = discord.Embed(title = ":inbox_tray: Invite Link", description = "You can invite me using this [link](https://discord.com/api/oauth2/authorize?client_id=851538022356615208&permissions=134605888&scope=bot)", color = 0x9c7a61, timestamp = datetime.utcnow())
     embed.set_thumbnail(url = self.bot.user.avatar_url)
     embed.set_footer(text = f"Requested by {ctx.author}", icon_url = ctx.author.avatar_url)
     await ctx.send(embed = embed)

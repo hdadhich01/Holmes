@@ -34,13 +34,11 @@ class DatabaseCommands(commands.Cog):
         await ctx.author.edit(nick = f"[AFK] {ctx.author.display_name[:-6]}")
     db[str(ctx.author.id)] = [str(ctx.message.created_at), message]
     text = f"{self.bot.checkmarkEmoji} Set your AFK"
-    if message:
-      text += f"\n```{message}```"
+    text += f"\n```{message}```" if message else ""
     await ctx.send(text)
   
   @commands.command(help = "Displays a ranodom fact", aliases = ["randomfact"])
-  @commands.guild_only()
-  @commands.cooldown(1, 10, BucketType.user) 
+  @commands.cooldown(1, 10, BucketType.user)
   async def fact(self, ctx):
     message = await ctx.send(f"{self.bot.loadingEmoji} Loading...")
     async with aiohttp.ClientSession() as session:
@@ -102,7 +100,7 @@ class DatabaseCommands(commands.Cog):
         for j in range(0, 3):
           printedTable += f"||{table[i][j]}|| "
         printedTable += "\n"
-      embed = discord.Embed(title = ":zap: Bubble Wrap", description = f"First to type the location to {correct} wins!\n(ex: `B2` or `2B`)\n\n{printedTable}", color = 0x9c7a61, timestamp = datetime.utcnow())
+      embed = discord.Embed(title = ":zap: Bubble Wrap", description = f"First to type the location to the white square wins!\n(ex: `B2` or `2B`)\n\n{printedTable}", color = 0x9c7a61, timestamp = datetime.utcnow())
       embed.set_footer(text = f"Requested by {ctx.author}", icon_url = ctx.author.avatar_url)
       return [embed, answer]
     
@@ -123,7 +121,7 @@ class DatabaseCommands(commands.Cog):
       await ctx.send(f"{message.author.mention} wins!")
   
   @commands.command(help = "Displays your grades (read [here](https://pastebin.com/30DtnU4p))")
-  @commands.cooldown(1, 20, BucketType.user) 
+  @commands.cooldown(1, 20, BucketType.user)
   async def grades(self, ctx, username, password):
     message = await ctx.send(f"{self.bot.loadingEmoji} Loading...")
     if ctx.message.guild:
@@ -158,7 +156,7 @@ class DatabaseCommands(commands.Cog):
     await message.edit(content = None, embed = embed)
   
   @commands.command(help = "Displays a random joke")
-  @commands.cooldown(1, 10, BucketType.user) 
+  @commands.cooldown(1, 10, BucketType.user)
   async def joke(self, ctx):
     message = await ctx.send(f"{self.bot.loadingEmoji} Loading...")
     async with aiohttp.ClientSession() as session:
@@ -213,7 +211,7 @@ class DatabaseCommands(commands.Cog):
       await message.edit(content = f"{self.bot.errorEmoji} Try attaching something")
   
   @commands.command(help = "Predicts your fortune", aliases = ["8ball"])
-  @commands.cooldown(1, 10, BucketType.user) 
+  @commands.cooldown(1, 10, BucketType.user)
   async def predict(self, ctx, *, question: str):
     message = await ctx.send(f"{self.bot.loadingEmoji} Loading...")
     async with aiohttp.ClientSession() as session:
@@ -397,8 +395,8 @@ class DatabaseCommands(commands.Cog):
         embed.set_footer(text = f"Requested by {ctx.author}", icon_url = ctx.author.avatar_url)
         await message.edit(content = None, embed = embed)
   
-  @commands.command(help = "Displays the weather for a specifed city")
-  @commands.cooldown(1, 20, BucketType.user) 
+  @commands.command(help = "Displays the weather for a city")
+  @commands.cooldown(1, 20, BucketType.user)
   async def weather(self, ctx, *, city):
     message = await ctx.send(f"{self.bot.loadingEmoji} Loading...")
     async with aiohttp.ClientSession() as session:
