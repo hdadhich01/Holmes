@@ -81,28 +81,6 @@ class Commands(commands.Cog):
     embed.add_field(name = "Last Restart", value = humanize.naturaltime(datetime.now() - self.bot.startTime), inline = True)
     await ctx.send(embed = embed)
   
-  @commands.command(help = "Displays your dong size", aliases = ["dong"])
-  @commands.cooldown(1, 5, BucketType.user) 
-  async def pp(self, ctx):
-    length = float(random.randint(0, 400)) / 10
-    output = ""
-    i = 0
-    ratings = {8: "Atomlike", 16: "Smol", 24: "Average", 32: "Large", 40: "BBC"}
-    index = 0
-    
-    for i in ratings:
-      if length > i:
-        index += 1
-      else:
-        break
-    for i in range(round(length)):
-     output += "="
-    
-    embed = discord.Embed(title = ":eggplant: PP Rater", description = f"8{output}D \n**Length:** `{round(length, 2)}` inches \n**Rating:** `{ratings[list(ratings.keys())[index]]}`", color = 0x9c7a61, timestamp = datetime.utcnow())
-    embed.set_footer(text = f"Requested by {ctx.author}", icon_url = ctx.author.avatar_url)
-    embed.set_thumbnail(url = ctx.author.avatar_url)
-    await ctx.send(embed = embed)
-  
   @commands.command(help = "Displays a user's spotify status", aliases = ["music"])
   @commands.guild_only()
   @commands.cooldown(1, 5, BucketType.user) 
