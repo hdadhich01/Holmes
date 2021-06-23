@@ -81,6 +81,17 @@ class Commands(commands.Cog):
     embed.add_field(name = "Last Restart", value = humanize.naturaltime(datetime.now() - self.bot.startTime), inline = True)
     await ctx.send(embed = embed)
   
+  @commands.command(help = "Reloads an extension")
+  @commands.is_owner()
+  async def reload(self, ctx, *, module):
+    try:
+      self.bot.unload_extension(f"cogs.{module}")
+      self.bot.load_extension(f"cogs.{module}")
+    except Exception as e:
+      await ctx.send(f"{self.bot.errorEmoji} An error occurred\n```{e}```")
+    else:
+      await ctx.send(f"{self.bot.checkmarkEmoji} Reloaded")
+  
   @commands.command(help = "Displays a user's spotify status", aliases = ["music"])
   @commands.guild_only()
   @commands.cooldown(1, 5, BucketType.user) 
@@ -94,7 +105,7 @@ class Commands(commands.Cog):
           activity = i
           break
     if not listening:
-      await ctx.send(f"{self.bot.errorEmoji} {'You' if member == ctx.author else 'They'} aren't listening to anything")
+      await ctx.send(f"{self.bot.errorEmoji} Can't detect {'your' if member == ctx.author else 'their'} listening status")
       return
     passed = int((datetime.now() - activity.start).total_seconds())
     total = int((activity.end - activity.start).total_seconds())

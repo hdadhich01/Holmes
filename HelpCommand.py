@@ -9,20 +9,20 @@ class HelpCommand(commands.HelpCommand):
       filtered = await self.filter_commands(commands, sort = True)
       for command in filtered:
         output += f"\n`{self.clean_prefix}{command.qualified_name}` {command.help}"
-    embed = discord.Embed(title = ":scroll: Help", description = output, color = 0x9c7a61)
+    embed = discord.Embed(title = ":scroll: Help", description = output, color = 0x9c7a61, timestamp = datetime.utcnow())
+    embed.set_footer(text = f"Requested by {self.context.author}", icon_url = self.context.author.avatar_url)
     await self.get_destination().send(embed = embed)
   
   async def send_command_help(self, command):
     title = command.qualified_name
-    if title in ["afk", "ocr"]:
-      title = title.upper()
+    title = title.upper() if title in ["afk", "ocr"] else title.capitalize()
     embed = discord.Embed(title = title, description = f"{command.help}", color = 0x9c7a61, timestamp = datetime.utcnow())
-    embed.add_field(name = "Syntax", value = f"`{self.clean_prefix}{command.qualified_name} {command.signature}`\nNote: `[]` is optional; `<>` is required")
+    embed.add_field(name = "Syntax", value = f"`{self.clean_prefix}{command.qualified_name}{' ' + command.signature if command.signature else ''}`\nNote: `[]` is optional; `<>` is required")
     if command.aliases:
       aliases = f"`{command.aliases[0]}`"
-      for i in command.aliases:
+      for i in command.aliases[1:]:
         aliases += f", `{i}`"
-      embed.add_field(name = "Aliases", value = aliases, inline=False)
-
-    channel = self.get_destination()
-    await channel.send(embed = embed)
+      embed.add_field(name = "Aliases", value = aliases, inline = False)
+    
+    embed.set_footer(text = f"Requested by {self.context.author}", icon_url = self.context.author.avatar_url)
+    await self.get_destination().send(embed = embed)

@@ -22,14 +22,9 @@ class Events(commands.Cog):
     elif isinstance(error, MissingPermissions):
       permission = error.missing_perms[0].replace("_", " ").title()
       await ctx.send(f"{self.bot.errorEmoji} This command requires you to have the `{permission}` permission")
+    elif isinstance(error, CommandOnCooldown):
+      await ctx.send(f"{self.bot.errorEmoji} You are on cooldown for `{round(error.retry_after, 2)}` seconds")
     elif not isinstance(error, CommandNotFound):
-      if isinstance(error, CommandOnCooldown):
-        await ctx.send(f"{self.bot.errorEmoji} You are on cooldown for `{round(error.retry_after, 2)}` seconds")
-      else:
-        await ctx.send(f"{self.bot.errorEmoji} An error occurred\n```{error}```")
-        if ctx.command:
-          ctx.command.reset_cooldown(ctx)
-    else:
       await ctx.send(f"{self.bot.errorEmoji} An error occurred\n```{error}```")
     print(f"❌‎‎‎　ERROR ({error})")
   
@@ -77,7 +72,7 @@ class Events(commands.Cog):
       if message.guild.me.guild_permissions.manage_nicknames:
         # afk user returns
         ctx = await self.bot.get_context(message)
-        if not str(ctx.command) == "afk":
+        if not any(alias in str(ctx.command) for alias in ["afk", "busy", "bye", "gn"]):
           if str(message.author.id) in db:
             del db[str(message.author.id)]
             if not message.author.guild_permissions.administrator:

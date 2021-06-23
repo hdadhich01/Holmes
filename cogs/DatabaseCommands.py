@@ -1,17 +1,21 @@
 import aiohttp
 import asyncio
+import cv2
 from datetime import datetime, timedelta
 import discord
 from discord.ext import commands
 from discord.ext.commands import BucketType
 import html2text
 import humanize
+import imutils
 import io
 import json
+import numpy
 import ordinal
 import portolan
 import random
 from replit import db
+from skimage.filters import threshold_local
 import uuid
 
 class DatabaseCommands(commands.Cog):
@@ -170,45 +174,49 @@ class DatabaseCommands(commands.Cog):
     await asyncio.sleep(2)
     await message.edit(content = None, embed = embed)
   
-  @commands.command(help = "Strips off text from an attachment", aliases = ["read", "scan"])
+  @commands.command(help = "Strips off text from an attachment", aliases = ["read"])
   @commands.cooldown(1, 20, BucketType.user)
   async def ocr(self, ctx, engine = 2):
     message = await ctx.send(f"{self.bot.loadingEmoji} Scanning... (this will take a moment)")
-    if ctx.message.attachments:
+    attachments = []
+    if ctx.message.reference:
+      reference = await ctx.fetch_message(ctx.message.reference.message_id)
+      attachments.extend(reference.attachments)
+    attachments.extend(ctx.message.attachments)
+
+    if attachments:
       if engine not in [1, 2]:
         await message.edit(content = f"{self.bot.errorEmoji} Invalid engine, choose `1` or `2` (more info at https://ocr.space/ocrapi#ocrengine)")
         return
-      for i in ctx.message.attachments:
+      
+      await message.delete()
+      for i in attachments:
         if i.size / 1000 <= 1024:
           async def process(url, apiKey, engine):
             payload = {"url": url, "apikey": apiKey, "OCREngine": engine}
             async with aiohttp.ClientSession() as session:
               async with session.post("https://api.ocr.space/parse/image", data = payload) as reply:
                 return await reply.json()
-          results = await process(i.url, "8031c0b2f488957", engine)
-          if results["IsErroredOnProcessing"]:
-            await message.edit(content = f"{self.bot.errorEmoji} An error occured (maybe try again with `!ocr {1 if engine == 2 else 2}`)\n```\n{results['ErrorMessage'][0]}```")
+          data = await process(i.url, "8031c0b2f488957", engine)
+          if data["IsErroredOnProcessing"]:
+            await message.edit(content = f"{self.bot.errorEmoji} An error occured (maybe try again with `!ocr {1 if engine == 2 else 2}`)\n```\n{data['ErrorMessage'][0]}```")
             return
-          if not results["ParsedResults"][0]["ParsedText"]:
+          if not data["ParsedResults"][0]["ParsedText"]:
             await message.edit(content = f"{self.bot.errorEmoji} No text found (if this is an error, try again with `!ocr {1 if engine == 2 else 2}`)")
             return
-          if len(results["ParsedResults"][0]["ParsedText"]) > 1024:
-            embed = discord.Embed(title = ":newspaper: Optical Character Recognition", color = 0x9c7a61, timestamp = datetime.utcnow())
-            embed.add_field(name = "Details", value = f"Name: [{i.filename}]({i.url})\nSize: `{round(i.size / 1000, 2)}` kilobytes\nProcess: `{round(int(results['ProcessingTimeInMilliseconds']) / 1000, 2)}` seconds\nEngine: `{engine}` (see more [here](https://ocr.space/ocrapi#ocrengine))", inline = False)
-            embed.add_field(name = "Results", value = f"```\n{results['ParsedResults'][0]['ParsedText']}```", inline = False)
-            embed.set_footer(text = f"Requested by {ctx.author}", icon_url = ctx.author.avatar_url)
-            await message.edit(content = None, embed = embed)
-            await ctx.send(file = discord.File(io.StringIO(results["ParsedResults"][0]["ParsedText"]), filename = "results.txt"))
-            return
-          embed = discord.Embed(title = ":newspaper: Optical Character Recognition", color = 0x9c7a61, timestamp = datetime.utcnow())
-          embed.add_field(name = "Details", value = f"Name: [{i.filename}]({i.url})\nSize: `{round(i.size / 1000, 2)}` kilobytes\nProcess: `{round(int(results['ProcessingTimeInMilliseconds']) / 1000, 2)}` seconds\nEngine: `{engine}` (see more [here](https://ocr.space/ocrapi#ocrengine))", inline = False)
-          embed.add_field(name = "Results", value = f"```\n{results['ParsedResults'][0]['ParsedText']}```", inline = False)
+          embed = discord.Embed(title = ":newspaper: Text Scanner", color = 0xe67e22, timestamp = datetime.utcnow())
+          embed.add_field(name = "Details", value = f"Name: [{i.filename}]({i.url})\nSize: `{round(i.size / 1000, 2)}` kilobytes\nProcess: `{round(int(data['ProcessingTimeInMilliseconds']) / 1000, 2)}` seconds\nEngine: `{engine}` (see more [here](https://ocr.space/ocrapi#ocrengine))", inline = False)
           embed.set_footer(text = f"Requested by {ctx.author}", icon_url = ctx.author.avatar_url)
-          await message.edit(content = None, embed = embed)
+          if len(data["ParsedResults"][0]["ParsedText"]) > 1024:
+            await ctx.send(embed = embed, file = discord.File(io.StringIO(data["ParsedResults"][0]["ParsedText"]), filename = "results.txt"))
+          else:
+            embed.add_field(name = "Results", value = f"```\n{data['ParsedResults'][0]['ParsedText']}```", inline = False)
+            await ctx.send(embed = embed)
         else:
-          await message.edit(content = f"{self.bot.errorEmoji} Your file exceeds the `1024` kilobyte limit")
+          await ctx.send(content = f"{self.bot.errorEmoji} `{i.filename}` exceeds the `1024` kilobyte limit")
     else:
-      await message.edit(content = f"{self.bot.errorEmoji} Try attaching something")
+      await message.edit(content = f"{self.bot.errorEmoji} Try attaching/referencing something")
+      ctx.command.reset_cooldown(ctx)
   
   @commands.command(help = "Predicts your fortune", aliases = ["8ball"])
   @commands.cooldown(1, 10, BucketType.user)
@@ -259,6 +267,77 @@ class DatabaseCommands(commands.Cog):
     embed = discord.Embed(title = "<:pepeLaugh:812786514911428608> Insult", description = data["insult"], color = 0x9c7a61, timestamp = datetime.utcnow())
     embed.set_footer(text = f"Requested by {ctx.author}", icon_url = ctx.author.avatar_url)
     await message.edit(content = content, embed = embed)
+  
+  @commands.command(help = "Sends a scanned version of your attachment", aliases = ["camscan"])
+  @commands.cooldown(1, 30, BucketType.user) 
+  async def scan(self, ctx):
+    def order_points(pts):
+      rect = numpy.zeros((4, 2), dtype = "float32")
+      s = pts.sum(axis=1)
+      rect[0] = pts[numpy.argmin(s)]
+      rect[2] = pts[numpy.argmax(s)]
+      diff = numpy.diff(pts, axis = 1)
+      rect[1] = pts[numpy.argmin(diff)]
+      rect[3] = pts[numpy.argmax(diff)]
+      return rect
+
+    def four_point_transform(image, pts):
+      rect = order_points(pts)
+      (tl, tr, br, bl) = rect
+      widthA = numpy.sqrt(((br[0] - bl[0]) ** 2) + ((br[1] - bl[1]) ** 2))
+      widthB = numpy.sqrt(((tr[0] - tl[0]) ** 2) + ((tr[1] - tl[1]) ** 2))
+      maxWidth = max(int(widthA), int(widthB))
+      heightA = numpy.sqrt(((tr[0] - br[0]) ** 2) + ((tr[1] - br[1]) ** 2))
+      heightB = numpy.sqrt(((tl[0] - bl[0]) ** 2) + ((tl[1] - bl[1]) ** 2))
+      maxHeight = max(int(heightA), int(heightB))
+      dst = numpy.array([
+          [0, 0],
+          [maxWidth - 1, 0],
+          [maxWidth - 1, maxHeight - 1],
+          [0, maxHeight - 1]], dtype="float32")
+      M = cv2.getPerspectiveTransform(rect, dst)
+      warped = cv2.warpPerspective(image, M, (maxWidth, maxHeight))
+      return warped
+
+    message = await ctx.send(f"{self.bot.loadingEmoji} Processing...")
+    if not ctx.message.attachments:
+      await message.edit(content = f"{self.bot.errorEmoji} Try attaching an image")
+      return
+    original = open("original.png", "wb")
+    original.write(await ctx.message.attachments[0].read())
+    original.close()
+    try:
+      image = cv2.imread("original.png")
+    except:
+      await message.edit(content = f"{self.bot.errorEmoji} Unable to read your attachment, make sure it's an image")
+      return
+    ratio = image.shape[0] / 500.0
+    orig = image.copy()
+    image = imutils.resize(image, height = 500)
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    gray = cv2.GaussianBlur(gray, (5, 5), 0)
+    edged = cv2.Canny(gray, 75, 200)
+    cnts = cv2.findContours(edged.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+    cnts = imutils.grab_contours(cnts)
+    cnts = sorted(cnts, key = cv2.contourArea, reverse = True)[:5]
+    for c in cnts:
+      peri = cv2.arcLength(c, True)
+      approx = cv2.approxPolyDP(c, 0.02 * peri, True)
+      if len(approx) == 4:
+        screenCnt = approx
+        break
+    try:
+      cv2.drawContours(image, screenCnt, -1, (0, 255, 0), 2)
+    except:
+      await message.edit(content = f"{self.bot.errorEmoji} Could not detect four corners")
+      return
+    warped = four_point_transform(orig, screenCnt.reshape(4, 2) * ratio)
+    warped = cv2.cvtColor(warped, cv2.COLOR_BGR2GRAY)
+    T = threshold_local(warped, 11, offset = 10, method = "gaussian")
+    warped = (warped > T).astype("uint8") * 255
+    cv2.imwrite(f"scanned.png", warped)
+    await message.delete()
+    await ctx.send(content = f"{self.bot.checkmarkEmoji} Scanned", file = discord.File(f"scanned.png"))
   
   @commands.command(help = "Displays the trivia leaderboard", aliases = ["lb", "leaderboard", "^"])
   @commands.cooldown(1, 10, BucketType.user)
