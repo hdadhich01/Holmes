@@ -349,9 +349,9 @@ class DatabaseCommands(commands.Cog):
     lb = []
     for i in data:
       if ctx.author.id == int(i):
-        lb.append(f"<@{i}> • `{data[i]}` :star:")
+        lb.append(f"<@{i}> `{data[i]}` :arrow_left:")
       else:
-        lb.append(f"<@{i}> • `{data[i]}`")
+        lb.append(f"<@{i}> `{data[i]}`")
     emojis = [":first_place:", ":second_place:", ":third_place:"]
     output = ""
     if len(lb) <= 15:

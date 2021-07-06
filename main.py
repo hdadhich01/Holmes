@@ -27,6 +27,13 @@ bot.help_command = HelpCommand(command_attrs = {
 
 @bot.event
 async def on_ready():
+  with open("prefixes.json", "r") as file:
+    prefixes = json.load(file)
+  for guild in bot.guilds:
+    if str(guild.id) not in prefixes:
+      prefixes[str(guild.id)] = "h!"
+  with open("prefixes.json", "w") as file:
+    json.dump(prefixes, file, indent = 2)
   def memberCount():
     return len([member for member in bot.get_all_members() if not member.bot])
   bot.memberCount = memberCount
