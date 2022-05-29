@@ -4,4 +4,4 @@
 
 # Holmes
 A minimized version of [this project](https://github.com/hdadhich01/Albert) meant for public server use.  
-Development and uptime ceased alongside base project.
+Development and uptime ceased alongside the base project.
