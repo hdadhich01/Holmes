@@ -1,10 +1,7 @@
-![PyPI](https://img.shields.io/pypi/v/discord.py) ![Github](https://img.shields.io/tokei/lines/github/TheHarpagon/Holmes) ![Uptime](https://img.shields.io/uptimerobot/ratio/m788352830-edbb0a4bc2193fa63d79bb35) ![Status](https://img.shields.io/uptimerobot/status/m788352830-edbb0a4bc2193fa63d79bb35)
+![PyPI](https://img.shields.io/pypi/v/discord.py)
 
-![Avatar](https://cdn.discordapp.com/avatars/851538022356615208/2bb97e53b10af3a56b7daa8163e92350.webp)
+![Avatar](https://i.ibb.co/hRtvczQ/avatar.webp)
 
 # Holmes
-Holmes is a utility bot with commands for AFK, OCR, trivia, weather, etc., primarily great for private servers with friends.
-## Features
-Coming soon
-## Invite
-Invite me to your server using this [link](https://discord.com/api/oauth2/authorize?client_id=851538022356615208&permissions=134605888&scope=bot)
+A minimized version of [this project](https://github.com/hdadhich01/Albert) meant for public server use.  
+Development and uptime ceased alongside base project.
